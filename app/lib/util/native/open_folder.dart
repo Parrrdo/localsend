@@ -26,6 +26,11 @@ Future<void> openFolder({
 
     final result = await OpenDir().openNativeDir(path: folderPath, highlightedFileName: fileName);
     _logger.info('Open folder result: $result, path: $folderPath, file: $fileName');
+  } else if (checkPlatform([TargetPlatform.android])) {
+    // Android: use native channel to open file manager at the folder location.
+    // Avoid OpenFilex.open() on directories which triggers APK installer bug.
+    final actualFilePath = fileName != null ? '$folderPath/$fileName' : folderPath;
+    await android_channel.showInFolder(filePath: actualFilePath);
   } else {
     // only open folder
 

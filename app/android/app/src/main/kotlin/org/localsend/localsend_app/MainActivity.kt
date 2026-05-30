@@ -2,16 +2,22 @@ package org.localsend.localsend_app
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.Settings
+import android.widget.Toast
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 
 
 private const val CHANNEL = "org.localsend.localsend_app/localsend"
@@ -70,6 +76,12 @@ class MainActivity : FlutterActivity() {
 
                 "isAnimationsEnabled" -> {
                     result.success(isAnimationsEnabled())
+                }
+
+                "showInFolder" -> {
+                    val filePath = call.argument<String>("filePath")!!
+                    showInFolder(filePath)
+                    result.success(null)
                 }
 
                 else -> result.notImplemented()
@@ -270,6 +282,49 @@ class MainActivity : FlutterActivity() {
         intent.action = Intent.ACTION_VIEW
         intent.type = "image/*"
         startActivity(intent)
+    }
+
+    /**
+     * Opens the file manager showing the folder containing the file,
+     * or opens the folder directly if filePath is a directory.
+     *
+     * Falls back progressively: native file manager → system DocumentsUI → open file itself.
+     */
+    private fun showInFolder(filePath: String) {
+        val file = File(filePath)
+        val target = if (file.isDirectory) file else file.parentFile!!
+
+        // 1) Try: open directory via ACTION_VIEW with directory MIME type
+        try {
+            val uri = Uri.fromFile(target)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            return
+        } catch (_: ActivityNotFoundException) {
+            // No file manager found, fall through
+        }
+
+        // 2) Try: Android 10+ — open Downloads via MediaStore as a fallback location
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+                return
+            } catch (_: Exception) { }
+        }
+
+        // 3) Last resort: open the file itself with its associated app
+        try {
+            openUri(this, Uri.fromFile(file).toString())
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not open file location", Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
