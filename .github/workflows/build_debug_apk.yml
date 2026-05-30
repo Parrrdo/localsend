@@ -41,6 +41,9 @@ jobs:
         working-directory: app
         run: flutter pub get
 
+      - name: Disable Gradle file watching (avoid path conflict)
+        run: echo "org.gradle.vfs.watch=false" >> app/android/gradle.properties
+
       - name: Build Release APK (split-per-abi)
         working-directory: app
         run: flutter build apk --split-per-abi
