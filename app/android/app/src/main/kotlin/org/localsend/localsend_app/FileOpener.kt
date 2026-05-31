@@ -18,7 +18,7 @@ fun openUri(context: Context, uriStr: String) {
     context.startActivity(intent)
 }
 
-private fun getFileType(filePath: String): String {
+fun getFileType(filePath: String): String {
     val fileExt = filePath.substring(filePath.lastIndexOf(".") + 1).lowercase(Locale.ROOT)
     println("File extension: $fileExt")
     return when (fileExt) {
