@@ -18,17 +18,18 @@ Future<void> openFolder({
   }
 
   if (fileName != null && checkPlatform([TargetPlatform.windows, TargetPlatform.linux, TargetPlatform.macOS])) {
-    // open folder and select file
-
+    // Desktop: open folder and select file
     if (defaultTargetPlatform == TargetPlatform.windows) {
       folderPath = folderPath.replaceAll('/', '\\');
     }
 
     final result = await OpenDir().openNativeDir(path: folderPath, highlightedFileName: fileName);
     _logger.info('Open folder result: $result, path: $folderPath, file: $fileName');
+  } else if (checkPlatform([TargetPlatform.android])) {
+    // Android: use native channel to open file manager
+    await android_channel.openFolderAndroid(path: folderPath);
   } else {
-    // only open folder
-
+    // iOS / desktop without fileName: only open folder
     if (!folderPath.endsWith('/')) {
       folderPath = '$folderPath/';
     }

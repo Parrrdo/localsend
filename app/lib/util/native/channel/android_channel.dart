@@ -87,6 +87,13 @@ Future<void> openContentUri({
   });
 }
 
+Future<void> openFolderAndroid({required String path}) async {
+  _logger.info('Opening folder: $path');
+  await _methodChannel.invokeMethod('openFolder', {
+    'path': path,
+  });
+}
+
 Future<void> openGallery() async {
   _logger.info('Opening gallery');
   await _methodChannel.invokeMethod('openGallery');

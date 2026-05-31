@@ -8,6 +8,8 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.Settings
+import android.os.Environment
+import java.io.File
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -60,6 +62,11 @@ class MainActivity : FlutterActivity() {
 
                 "openContentUri" -> {
                     openUri(context, call.argument<String>("uri")!!)
+                    result.success(null)
+                }
+
+                "openFolder" -> {
+                    openFolder(call.argument<String>("path")!!)
                     result.success(null)
                 }
 
@@ -270,6 +277,31 @@ class MainActivity : FlutterActivity() {
         intent.action = Intent.ACTION_VIEW
         intent.type = "image/*"
         startActivity(intent)
+    }
+
+    private fun openFolder(path: String) {
+        try {
+            val file = File(path)
+            val uri = if (file.exists()) {
+                Uri.fromFile(file)
+            } else {
+                // Fallback: try to open Downloads
+                Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (_: Exception) {
+            // Ultimate fallback: open DocumentsUI
+            try {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                startActivity(intent)
+            } catch (_: Exception) {
+                // Give up
+            }
+        }
     }
 }
 
