@@ -22,7 +22,7 @@ Future<void> openFile(
     return;
   }
 
-  // On Android, use native FileProvider-based method for reliable file opening
+  // On Android, try native FileProvider method first, fall back to OpenFilex
   if (checkPlatform([TargetPlatform.android])) {
     try {
       await android_channel.openFileAndroid(path: filePath);

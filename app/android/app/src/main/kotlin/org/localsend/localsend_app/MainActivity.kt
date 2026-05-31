@@ -67,13 +67,11 @@ class MainActivity : FlutterActivity() {
                 }
 
                 "openFolder" -> {
-                    openFolder(call.argument<String>("path")!!)
-                    result.success(null)
+                    openFolder(call, result)
                 }
 
                 "openFile" -> {
-                    openFile(call.argument<String>("path")!!)
-                    result.success(null)
+                    openFile(call, result)
                 }
 
                 "openGallery" -> {
@@ -285,7 +283,12 @@ class MainActivity : FlutterActivity() {
         startActivity(intent)
     }
 
-    private fun openFolder(path: String) {
+    private fun openFolder(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        if (path == null) {
+            result.error("INVALID_ARG", "path is null", null)
+            return
+        }
         try {
             val file = File(path)
             val uri = if (file.exists()) {
@@ -298,21 +301,30 @@ class MainActivity : FlutterActivity() {
             intent.setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
-        } catch (_: Exception) {
+            result.success(null)
+        } catch (e: Exception) {
             try {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                 startActivity(intent)
-            } catch (_: Exception) {
-                // Give up
+                result.success(null)
+            } catch (e2: Exception) {
+                result.error("OPEN_FOLDER_FAILED", "Could not open folder: ${e.message} ; fallback also failed: ${e2.message}", null)
             }
         }
     }
 
-    private fun openFile(path: String) {
+    private fun openFile(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        if (path == null) {
+            result.error("INVALID_ARG", "path is null", null)
+            return
+        }
+        val file = File(path)
+        if (!file.exists()) {
+            result.error("FILE_NOT_FOUND", "File does not exist: $path", null)
+            return
+        }
         try {
-            val file = File(path)
-            if (!file.exists()) return
-
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             val mimeType = getFileType(path)
 
@@ -320,16 +332,17 @@ class MainActivity : FlutterActivity() {
             intent.setDataAndType(uri, mimeType)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
+            result.success(null)
         } catch (e: Exception) {
             try {
-                // Last resort: try with file:// URI (works on some devices)
                 val uri = Uri.fromFile(File(path))
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.setDataAndType(uri, getFileType(path))
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
-            } catch (_: Exception) {
-                // Give up
+                result.success(null)
+            } catch (e2: Exception) {
+                result.error("OPEN_FILE_FAILED", "Could not open file: ${e.message} ; fallback: ${e2.message}", null)
             }
         }
     }
