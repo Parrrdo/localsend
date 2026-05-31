@@ -9,6 +9,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.Settings
 import android.os.Environment
+import androidx.core.content.FileProvider
 import java.io.File
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -67,6 +68,11 @@ class MainActivity : FlutterActivity() {
 
                 "openFolder" -> {
                     openFolder(call.argument<String>("path")!!)
+                    result.success(null)
+                }
+
+                "openFile" -> {
+                    openFile(call.argument<String>("path")!!)
                     result.success(null)
                 }
 
@@ -285,7 +291,6 @@ class MainActivity : FlutterActivity() {
             val uri = if (file.exists()) {
                 Uri.fromFile(file)
             } else {
-                // Fallback: try to open Downloads
                 Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
             }
 
@@ -294,10 +299,35 @@ class MainActivity : FlutterActivity() {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } catch (_: Exception) {
-            // Ultimate fallback: open DocumentsUI
             try {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                 startActivity(intent)
+            } catch (_: Exception) {
+                // Give up
+            }
+        }
+    }
+
+    private fun openFile(path: String) {
+        try {
+            val file = File(path)
+            if (!file.exists()) return
+
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val mimeType = getFileType(path)
+
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, mimeType)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            try {
+                // Last resort: try with file:// URI (works on some devices)
+                val uri = Uri.fromFile(File(path))
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.setDataAndType(uri, getFileType(path))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
             } catch (_: Exception) {
                 // Give up
             }
