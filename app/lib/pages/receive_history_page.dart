@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:common/model/device.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +17,6 @@ import 'package:localsend_app/widget/dialogs/file_info_dialog.dart';
 import 'package:localsend_app/widget/dialogs/history_clear_dialog.dart';
 import 'package:localsend_app/widget/file_thumbnail.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
-import 'package:path/path.dart' as path;
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -201,12 +198,7 @@ class ReceiveHistoryPage extends StatelessWidget {
                               await _openFile(context, entry, context.redux(receiveHistoryProvider));
                               break;
                             case _EntryOption.showInFolder:
-                              if (entry.path != null) {
-                                await openFolder(
-                                  folderPath: File(entry.path!).parent.path,
-                                  fileName: path.basename(entry.path!),
-                                );
-                              }
+                              await _openFile(context, entry, context.redux(receiveHistoryProvider));
                               break;
                             case _EntryOption.info:
                               // ignore: use_build_context_synchronously
