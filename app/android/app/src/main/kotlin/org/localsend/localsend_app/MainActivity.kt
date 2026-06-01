@@ -83,6 +83,10 @@ class MainActivity : FlutterActivity() {
                     showFileInManager(call, result)
                 }
 
+                "getDownloadsPath" -> {
+                    result.success(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath)
+                }
+
                 "isAnimationsEnabled" -> {
                     result.success(isAnimationsEnabled())
                 }
@@ -346,12 +350,12 @@ class MainActivity : FlutterActivity() {
             result.error("FILE_NOT_FOUND", "File does not exist: $path", null)
             return
         }
+        // Open the parent directory in a file manager (same approach as openFolder)
+        val parentDir = file.parentFile ?: file
         try {
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            val mimeType = context.contentResolver.getType(uri) ?: "*/*"
-
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", parentDir)
             val intent = Intent(Intent.ACTION_VIEW)
-            intent.setDataAndType(uri, mimeType)
+            intent.setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             result.success(null)

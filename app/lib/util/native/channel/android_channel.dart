@@ -108,6 +108,10 @@ Future<void> showFileInManagerAndroid({required String path}) async {
   });
 }
 
+Future<String?> getDownloadsPathAndroid() async {
+  return await _methodChannel.invokeMethod<String>('getDownloadsPath');
+}
+
 Future<void> openGallery() async {
   _logger.info('Opening gallery');
   await _methodChannel.invokeMethod('openGallery');
