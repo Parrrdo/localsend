@@ -344,7 +344,8 @@ class MainActivity : FlutterActivity() {
         }
         try {
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            val mimeType = getFileType(path)
+            // Use system ContentResolver for MIME detection instead of manual mapping
+            val mimeType = context.contentResolver.getType(uri) ?: "*/*"
 
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(uri, mimeType)
@@ -352,16 +353,7 @@ class MainActivity : FlutterActivity() {
             context.startActivity(intent)
             result.success(null)
         } catch (e: Exception) {
-            try {
-                val uri = Uri.fromFile(File(path))
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.setDataAndType(uri, getFileType(path))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-                result.success(null)
-            } catch (e2: Exception) {
-                result.error("OPEN_FILE_FAILED", "Could not open file: ${e.message} ; fallback: ${e2.message}", null)
-            }
+            result.error("OPEN_FILE_FAILED", "Could not open file: ${e.message}", null)
         }
     }
 }
