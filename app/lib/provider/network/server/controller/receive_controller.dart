@@ -221,7 +221,7 @@ class ReceiveController {
     }
 
     final settings = server.ref.read(settingsProvider);
-    final destinationDir = settings.destination ?? await getDefaultDestinationDirectory();
+    final destinationDir = await getDefaultDestinationDirectory();
     final cacheDir = await getCacheDirectory();
     final sessionId = _uuid.v4();
 

@@ -353,8 +353,7 @@ class MainActivity : FlutterActivity() {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(uri, mimeType)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-            val chooser = Intent.createChooser(intent, "Open with")
-            context.startActivity(chooser)
+            context.startActivity(intent)
             result.success(null)
         } catch (e: Exception) {
             result.error("SHOW_FILE_FAILED", "Could not show file in manager: ${e.message}", null)
