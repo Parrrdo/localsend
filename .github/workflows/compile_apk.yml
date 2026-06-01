@@ -68,6 +68,20 @@ jobs:
           toolchain: stable
           override: ${{ env.RUST_VERSION }}
 
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: pub-cache-
+
+      - name: Cache gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: gradle-${{ hashFiles('app/android/**/*.gradle*', 'app/android/gradle.properties') }}
+          restore-keys: gradle-
+
       - name: Dependencies
         working-directory: ${{ env.APK_BUILD_DIR }}/app
         run: flutter pub get
