@@ -88,6 +88,6 @@ fun getFileType(filePath: String): String {
         "xml" -> "text/plain"
         "z" -> "application/x-compress"
         "zip" -> "application/x-zip-compressed"
-        else -> DocumentsContract.Document.MIME_TYPE_DIR
+        else -> "*/*"
     }
 }

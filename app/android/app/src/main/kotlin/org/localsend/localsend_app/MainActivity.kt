@@ -291,15 +291,33 @@ class MainActivity : FlutterActivity() {
         }
         try {
             val file = File(path)
-            val uri = if (file.exists()) {
-                Uri.fromFile(file)
-            } else {
-                Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+            if (!file.exists() || !file.isDirectory) {
+                // Fallback: open Downloads directory instead
+                val fallbackFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    fallbackFile
+                )
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                result.success(null)
+                return
             }
+
+            // Use FileProvider to create a content:// URI, avoiding FileUriExposedException
+            // and scoped storage issues on Android 10+
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
 
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             result.success(null)
         } catch (e: Exception) {
