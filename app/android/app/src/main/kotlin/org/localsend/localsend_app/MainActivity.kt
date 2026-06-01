@@ -76,11 +76,11 @@ class MainActivity : FlutterActivity() {
 
                 "openGallery" -> {
                     openGallery()
-                "showFileInManager" -> {
-                    showFileInManager(call, result)
+                    result.success(null)
                 }
 
-                    result.success(null)
+                "showFileInManager" -> {
+                    showFileInManager(call, result)
                 }
 
                 "isAnimationsEnabled" -> {
