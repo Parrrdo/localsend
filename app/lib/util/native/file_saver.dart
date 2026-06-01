@@ -172,9 +172,8 @@ Future<(bool, String?)> _saveFile({
     if (saveToGallery) {
       try {
         isImage ? await Gal.putImage(destinationPath) : await Gal.putVideo(destinationPath);
-        await File(destinationPath).delete();
         onProgress(savedBytes);
-        return (true, null);
+        return (true, destinationPath);
       } on GalException catch (e) {
         if (e.type == GalExceptionType.notSupportedFormat) {
           _logger.info('File format not supported by gallery, moving to destination directory');
