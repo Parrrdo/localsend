@@ -1,0 +1,43 @@
+name: Build Android APK
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.10'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.93.1'
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 ndk;27.0.12077973 build-tools;34.0.0'
+
+      - name: Build debug APK
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter build apk --debug --no-android-gradle-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: localsend-debug-apk
+          path: app/build/app/outputs/flutter-apk/app-debug.apk
