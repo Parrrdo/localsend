@@ -22,16 +22,6 @@ Future<void> openFile(
     return;
   }
 
-  // On Android, try native FileProvider method first, fall back to OpenFilex
-  if (checkPlatform([TargetPlatform.android])) {
-    try {
-      await android_channel.openFileAndroid(path: filePath);
-      return;
-    } catch (_) {
-      // Fall back to OpenFilex
-    }
-  }
-
   final fileOpenResult = await OpenFilex.open(filePath);
   if (fileOpenResult.type != ResultType.done && context.mounted) {
     await CannotOpenFileDialog.open(context, filePath, onDeleteTap);
