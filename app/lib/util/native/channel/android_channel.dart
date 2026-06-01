@@ -101,6 +101,13 @@ Future<void> openFileAndroid({required String path}) async {
   });
 }
 
+Future<void> showFileInManagerAndroid({required String path}) async {
+  _logger.info('Showing file in manager: $path');
+  await _methodChannel.invokeMethod('showFileInManager', {
+    'path': path,
+  });
+}
+
 Future<void> openGallery() async {
   _logger.info('Opening gallery');
   await _methodChannel.invokeMethod('openGallery');

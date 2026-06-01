@@ -43,7 +43,7 @@ Future<(bool, String?)> saveFile({
   DateTime? lastModified,
   DateTime? lastAccessed,
 }) async {
-  final parentDirectory = saveToGallery ? await getCacheDirectory() : destinationDirectory;
+  final parentDirectory = destinationDirectory;
 
   final (destinationPath, documentUri, finalName) = await digestFilePathAndPrepareDirectory(
     parentDirectory: parentDirectory,

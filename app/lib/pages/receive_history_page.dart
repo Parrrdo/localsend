@@ -8,6 +8,7 @@ import 'package:localsend_app/pages/receive_page.dart';
 import 'package:localsend_app/provider/receive_history_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/file_size_helper.dart';
+import 'package:localsend_app/util/native/channel/android_channel.dart' as android_channel;
 import 'package:localsend_app/util/native/directories.dart';
 import 'package:localsend_app/util/native/open_file.dart';
 import 'package:localsend_app/util/native/open_folder.dart';
@@ -198,7 +199,9 @@ class ReceiveHistoryPage extends StatelessWidget {
                               await _openFile(context, entry, context.redux(receiveHistoryProvider));
                               break;
                             case _EntryOption.showInFolder:
-                              await _openFile(context, entry, context.redux(receiveHistoryProvider));
+                              if (entry.path != null) {
+                                await android_channel.showFileInManagerAndroid(path: entry.path!);
+                              }
                               break;
                             case _EntryOption.info:
                               // ignore: use_build_context_synchronously

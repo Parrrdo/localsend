@@ -76,6 +76,10 @@ class MainActivity : FlutterActivity() {
 
                 "openGallery" -> {
                     openGallery()
+                "showFileInManager" -> {
+                    showFileInManager(call, result)
+                }
+
                     result.success(null)
                 }
 
@@ -328,6 +332,32 @@ class MainActivity : FlutterActivity() {
             } catch (e2: Exception) {
                 result.error("OPEN_FOLDER_FAILED", "Could not open folder: ${e.message} ; fallback also failed: ${e2.message}", null)
             }
+        }
+    }
+
+    private fun showFileInManager(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        if (path == null) {
+            result.error("INVALID_ARG", "path is null", null)
+            return
+        }
+        val file = File(path)
+        if (!file.exists()) {
+            result.error("FILE_NOT_FOUND", "File does not exist: $path", null)
+            return
+        }
+        try {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val mimeType = context.contentResolver.getType(uri) ?: "*/*"
+
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, mimeType)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            val chooser = Intent.createChooser(intent, "Open with")
+            context.startActivity(chooser)
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("SHOW_FILE_FAILED", "Could not show file in manager: ${e.message}", null)
         }
     }
 
